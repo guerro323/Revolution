@@ -70,6 +70,12 @@ namespace RevolutionSnapshot.Core.ECS
 		{
 			return ref World.GetComponent<T>(Raw);
 		}
+
+		public bool RemoveComponent<T>()
+			where T : IRevolutionComponent
+		{
+			return World.RemoveComponent<T>(Raw);
+		}
 	}
 
 	/// <summary>

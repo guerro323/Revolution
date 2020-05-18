@@ -166,6 +166,7 @@ namespace RevolutionSnapshot.Core.ECS
 
 			ref var newReference = ref GetComponent<T>(entity);
 			newReference = value;
+
 			return ref newReference;
 		}
 
@@ -179,9 +180,28 @@ namespace RevolutionSnapshot.Core.ECS
 		public ref T GetComponent<T>(RawEntity entity)
 			where T : IRevolutionComponent
 		{
-			//return ref ((ComponentWrapper<T>) entityToChunk[entity].MappedComponents[entity][typeof(T)]).Value;
 			var chunk = entityToChunk[entity];
 			return ref chunk.Components[typeof(T)].GetArray<T>()[chunk.IndexOf(entity)];
+		}
+
+		/// <summary>
+		/// Remove a component from an entity
+		/// </summary>
+		/// <param name="entity">The entity</param>
+		/// <typeparam name="T">The component to remove</typeparam>
+		/// <returns>Return true if the component was removed</returns>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public bool RemoveComponent<T>(RawEntity entity)
+			where T : IRevolutionComponent
+		{
+			var previousChunk = entityToChunk[entity];
+			var componentList = previousChunk.ComponentTypes.Except(new[] {typeof(T)})
+			                                 .ToArray();
+			if (componentList.Length == previousChunk.ComponentTypes.Length)
+				return false;
+
+			MoveToChunk(entity, GetOrCreateChunk(componentList.ToArray()));
+			return true;
 		}
 
 		/// <summary>

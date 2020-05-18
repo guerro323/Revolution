@@ -74,7 +74,7 @@ namespace RevolutionSnapshot.Tests
 
 			// without ID
 			var entityWithoutIdentifier = world.CreateEntity();
-			Assert.AreEqual(default(RawEntity), world.GetEntityFromIdentifier(id));
+			Assert.AreEqual(default(RevolutionEntity), world.GetEntityFromIdentifier(id));
 
 			var entityWithIdentifier = world.CreateIdentEntity(id);
 			Assert.AreNotEqual(entityWithoutIdentifier, world.GetEntityFromIdentifier(id));
@@ -95,6 +95,8 @@ namespace RevolutionSnapshot.Tests
 			world.SetComponent(entity.Raw, new Component1 {Value = 41});
 			Assert.AreEqual(world.GetComponent<Component1>(entity.Raw).Value, 41);
 			Assert.AreEqual(hold.Value, 41);
+			
+			Assert.IsTrue(world.RemoveComponent<Component1>(entity.Raw));
 		}
 
 		struct Component1 : ISnapshotComponent<Component1>
