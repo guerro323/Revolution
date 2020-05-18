@@ -5,7 +5,7 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <Nullable>disable</Nullable>
         <PackageId>Revolution.Core</PackageId>
-        <PackageVersion>0.0.0</PackageVersion>
+        <PackageVersion>2020.05.18.1816</PackageVersion>
         <Title>Revolution.Core</Title>
         <Authors>guerro</Authors>
         <PackageProjectUrl>https://github.com/guerro323/revolution</PackageProjectUrl>
@@ -20,6 +20,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="Collections.Pooled" Version="2.0.0-preview.27" />
       <PackageReference Include="MessagePack" Version="2.1.115" />
     </ItemGroup>
 

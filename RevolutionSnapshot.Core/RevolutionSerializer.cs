@@ -22,7 +22,7 @@ namespace RevolutionSnapshot.Core
 			
 			foreach (var chunk in World.Chunks)
 			{
-				var entities = chunk.AsArray.AsSpan();
+				var entities = chunk.Span;
 				foreach (ref readonly var entity in entities)
 				{
 					

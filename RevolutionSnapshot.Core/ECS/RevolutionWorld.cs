@@ -181,7 +181,7 @@ namespace RevolutionSnapshot.Core.ECS
 			where T : IRevolutionComponent
 		{
 			var chunk = entityToChunk[entity];
-			return ref chunk.Components[typeof(T)].GetArray<T>()[chunk.IndexOf(entity)];
+			return ref chunk.Components[typeof(T)].GetSpan<T>()[chunk.IndexOf(entity)];
 		}
 
 		/// <summary>

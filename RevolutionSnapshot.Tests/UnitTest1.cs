@@ -63,7 +63,7 @@ namespace RevolutionSnapshot.Tests
 			Console.WriteLine($"Time to clone: {sw.Elapsed.TotalMilliseconds}ms");
 
 			Assert.AreEqual(worldSource.Chunks.Length, clone.Chunks.Length);
-			Assert.AreEqual(worldSource.Chunks[0].AsArray.Length, clone.Chunks[0].AsArray.Length);
+			Assert.AreEqual(worldSource.Chunks[0].Span.Length, clone.Chunks[0].Span.Length);
 		}
 
 		[Test]

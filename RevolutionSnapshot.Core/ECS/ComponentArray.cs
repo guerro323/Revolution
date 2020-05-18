@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
+using Collections.Pooled;
 
 namespace RevolutionSnapshot.Core.ECS
 {
 	/// <summary>
 	///     A component array contains the components of an entity chunk (<see cref="RevolutionChunk" />)
 	/// </summary>
-	public class ComponentArray
+	public struct ComponentArray : IDisposable
 	{
 		public readonly Type Type;
 
@@ -81,12 +82,12 @@ namespace RevolutionSnapshot.Core.ECS
 		/// <typeparam name="T">The type of the component</typeparam>
 		/// <returns>Component array of <see cref="T" /></returns>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public T[] GetArray<T>()
+		public Span<T> GetSpan<T>()
 		{
-			return ((Wrapped<T>) wrapped).AsArray;
+			return ((Wrapped<T>) wrapped).Span;
 		}
 
-		private abstract class Wrapped
+		private abstract class Wrapped : IDisposable
 		{
 			public abstract int GetLength();
 
@@ -94,16 +95,18 @@ namespace RevolutionSnapshot.Core.ECS
 			public abstract void RemoveAt(int   index);
 			public abstract void CopyTo(int     source, Wrapped other, int destination);
 			public abstract void CopyTo(Wrapped other);
+
+			public abstract void Dispose();
 		}
 
 		private class Wrapped<T> : Wrapped
 		{
-			private readonly ArrayList<T> values = new ArrayList<T>();
+			private readonly PooledList<T> values = new PooledList<T>();
 
-			public T[] AsArray
+			public Span<T> Span
 			{
 				[MethodImpl(MethodImplOptions.AggressiveInlining)]
-				get => values._items;
+				get => values.Span;
 			}
 
 			public override int GetLength()
@@ -131,8 +134,19 @@ namespace RevolutionSnapshot.Core.ECS
 			public override void CopyTo(Wrapped other)
 			{
 				var genOther = (Wrapped<T>) other;
-				values._items.CopyTo(genOther.values._items.AsMemory());
+				genOther.values.Clear();
+				values.CopyTo(genOther.values.AddSpan(values.Count));
 			}
+
+			public override void Dispose()
+			{
+				values.Dispose();
+			}
+		}
+
+		public void Dispose()
+		{
+			wrapped?.Dispose();
 		}
 	}
 }

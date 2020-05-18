@@ -22,7 +22,7 @@
 			foreach (var chunk in Chunks)
 			{
 				var clonedChunk   = destination.GetOrCreateChunk(chunk.ComponentTypes);
-				var chunkEntities = chunk.AsArray;
+				var chunkEntities = chunk.Span;
 				for (var i = 0; i < chunkEntities.Length; i++)
 				{
 					// todo: copy identity

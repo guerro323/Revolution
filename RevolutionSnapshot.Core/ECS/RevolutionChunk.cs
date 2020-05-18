@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using Collections.Pooled;
 
 namespace RevolutionSnapshot.Core.ECS
 {
@@ -13,45 +14,30 @@ namespace RevolutionSnapshot.Core.ECS
 		/// <summary>
 		///     Get the components of this chunk
 		/// </summary>
-		public readonly Dictionary<Type, ComponentArray> Components;
+		public readonly PooledDictionary<Type, ComponentArray> Components;
 
 		/// <summary>
 		///     Get the component types of this chunk
 		/// </summary>
 		public readonly Type[] ComponentTypes;
 
-		private readonly List<RawEntity>            entities;
-		private readonly Dictionary<RawEntity, int> entityToIndex;
-		private          RawEntity[]                cachedArray;
-		private          bool                       cacheIsDirty;
+		private readonly PooledList<RawEntity>            entities;
+		private readonly PooledDictionary<RawEntity, int> entityToIndex;
 
 		public RevolutionChunk(IEnumerable<Type> components)
 		{
-			cachedArray = new RawEntity[0];
-
 			ComponentTypes = components.ToArray();
-			entities       = new List<RawEntity>();
-			Components     = new Dictionary<Type, ComponentArray>(ComponentTypes.Length);
+			entities       = new PooledList<RawEntity>();
+			Components     = new PooledDictionary<Type, ComponentArray>(ComponentTypes.Length);
 			foreach (var type in ComponentTypes) Components[type] = new ComponentArray(type);
 
-			entityToIndex = new Dictionary<RawEntity, int>();
+			entityToIndex = new PooledDictionary<RawEntity, int>();
 		}
 
 		/// <summary>
 		///     Get the array of entities. If an entity was added or removed, the array will be recomputed.
 		/// </summary>
-		public RawEntity[] AsArray
-		{
-			[MethodImpl(MethodImplOptions.AggressiveInlining)]
-			get
-			{
-				if (!cacheIsDirty)
-					return cachedArray;
-
-				cacheIsDirty = false;
-				return cachedArray = entities.ToArray();
-			}
-		}
+		public Span<RawEntity> Span => entities.Span;
 
 		/// <summary>
 		/// Dispose and clear component data
@@ -60,7 +46,16 @@ namespace RevolutionSnapshot.Core.ECS
 		{
 			Array.Clear(ComponentTypes, 0, ComponentTypes.Length);
 			entities.Clear();
+			foreach (var component in Components.Values)
+			{
+				component.Dispose();
+			}
+
 			Components.Clear();
+
+			entityToIndex.Dispose();
+			entities.Dispose();
+			Components.Dispose();
 		}
 
 		public bool Equals(RevolutionChunk other)
@@ -75,7 +70,6 @@ namespace RevolutionSnapshot.Core.ECS
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal void RemoveEntity(RawEntity entity)
 		{
-			cacheIsDirty = true;
 			foreach (var component in Components.Values)
 				component.RemoveAt(entities.IndexOf(entity));
 			entities.Remove(entity);
@@ -93,8 +87,6 @@ namespace RevolutionSnapshot.Core.ECS
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal void AddEntity(RawEntity entity)
 		{
-			cacheIsDirty = true;
-
 			entityToIndex[entity] = entities.Count;
 
 			entities.Add(entity);
@@ -120,7 +112,7 @@ namespace RevolutionSnapshot.Core.ECS
 		/// <returns></returns>
 		public Span<T> GetComponents<T>()
 		{
-			return Components[typeof(T)].GetArray<T>().AsSpan();
+			return Components[typeof(T)].GetSpan<T>();
 		}
 
 		public override bool Equals(object obj)
