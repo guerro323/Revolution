@@ -4,10 +4,15 @@
         <TargetFramework>netcoreapp3.0</TargetFramework>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <Nullable>disable</Nullable>
-        <PackageId>RevolutionEC</PackageId>
-        <PackageVersion>0.0.1</PackageVersion>
-        <Title>Revolution</Title>
+        <PackageId>Revolution.Core</PackageId>
+        <PackageVersion>0.0.0</PackageVersion>
+        <Title>Revolution.Core</Title>
         <Authors>guerro</Authors>
+        <PackageProjectUrl>https://github.com/guerro323/revolution</PackageProjectUrl>
+        <PackageLicenseUrl>https://github.com/guerro323/revolution/LICENSE</PackageLicenseUrl>
+        <RepositoryUrl>https://github.com/guerro323/Revolution.git</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <AssemblyVersion>0.0.1</AssemblyVersion>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
