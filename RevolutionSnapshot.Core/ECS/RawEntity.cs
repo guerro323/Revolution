@@ -48,6 +48,9 @@ namespace RevolutionSnapshot.Core.ECS
 		public readonly RevolutionWorld World;
 		public readonly RawEntity       Raw;
 
+		public bool            IsAlive => World.Exists(Raw);
+		public RevolutionChunk Chunk   => World.GetChunk(Raw);
+
 		public RevolutionEntity(RevolutionWorld world, RawEntity raw)
 		{
 			World = world;
@@ -130,6 +133,16 @@ namespace RevolutionSnapshot.Core.ECS
 		public void Set<T>(T val)
 		{
 			wrapped = new Wrapped<T>(val);
+		}
+
+		/// <summary>
+		/// Get the identity
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <returns></returns>
+		public T Get<T>()
+		{
+			return ((Wrapped<T>) wrapped).Value;
 		}
 
 		public bool Equals(EntityIdentifier other)

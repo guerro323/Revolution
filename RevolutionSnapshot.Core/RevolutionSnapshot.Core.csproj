@@ -5,7 +5,7 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <Nullable>disable</Nullable>
         <PackageId>Revolution.Core</PackageId>
-        <PackageVersion>2020.05.18.1816</PackageVersion>
+        <PackageVersion>2020.05.18.2340</PackageVersion>
         <Title>Revolution.Core</Title>
         <Authors>guerro</Authors>
         <PackageProjectUrl>https://github.com/guerro323/revolution</PackageProjectUrl>

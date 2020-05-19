@@ -79,6 +79,8 @@ namespace RevolutionSnapshot.Tests
 			var entityWithIdentifier = world.CreateIdentEntity(id);
 			Assert.AreNotEqual(entityWithoutIdentifier, world.GetEntityFromIdentifier(id));
 			Assert.AreEqual(entityWithIdentifier, world.GetEntityFromIdentifier(id));
+
+			Assert.AreEqual(id, world.GetIdentifier<int>(entityWithIdentifier.Raw));
 		}
 
 		[Test]
@@ -93,9 +95,11 @@ namespace RevolutionSnapshot.Tests
 			Assert.AreEqual(world.GetComponent<Component1>(entity.Raw).Value, 43);
 
 			world.SetComponent(entity.Raw, new Component1 {Value = 41});
+			world.SetComponent(entity.Raw, new Component2());
+			world.RemoveComponent<Component2>(entity.Raw);
 			Assert.AreEqual(world.GetComponent<Component1>(entity.Raw).Value, 41);
 			Assert.AreEqual(hold.Value, 41);
-			
+
 			Assert.IsTrue(world.RemoveComponent<Component1>(entity.Raw));
 		}
 
@@ -107,6 +111,11 @@ namespace RevolutionSnapshot.Tests
 			{
 				Value = (int) MathHelper.Lerp(Value, nextState.Value, factor);
 			}
+		}
+
+		struct Component2 : IRevolutionComponent
+		{
+
 		}
 	}
 }

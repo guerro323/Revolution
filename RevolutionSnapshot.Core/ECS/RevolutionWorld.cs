@@ -18,7 +18,7 @@ namespace RevolutionSnapshot.Core.ECS
 		private Dictionary<RawEntity, RevolutionChunk> entityToChunk;
 
 		// TODO: We need to separate this variable into another class
-		private readonly Dictionary<EntityIdentifier, RawEntity> identifierToEntity;
+		private readonly TwoWayDictionary<EntityIdentifier, RawEntity> identifierToEntity;
 		private          RawEntity                               lastEntity;
 
 		public RevolutionWorld(int capacity = 0)
@@ -30,7 +30,7 @@ namespace RevolutionSnapshot.Core.ECS
 			Chunks[0] = new RevolutionChunk(new Type[0]);
 
 			entityToChunk      = new Dictionary<RawEntity, RevolutionChunk>(1);
-			identifierToEntity = new Dictionary<EntityIdentifier, RawEntity>();
+			identifierToEntity = new TwoWayDictionary<EntityIdentifier, RawEntity>();
 		}
 
 		protected RevolutionChunk EmptyComponentChunk => Chunks[0];
@@ -86,7 +86,7 @@ namespace RevolutionSnapshot.Core.ECS
 			var ent = CreateEntityInChunk(chunk);
 			var id  = new EntityIdentifier();
 			id.Set(identity);
-			identifierToEntity[id] = ent.Raw;
+			identifierToEntity.Set(id, ent.Raw);
 
 			return ent;
 		}
@@ -127,6 +127,23 @@ namespace RevolutionSnapshot.Core.ECS
 		{
 			entityToChunk[entity].RemoveEntity(entity);
 			entityToChunk.Remove(entity);
+		}
+
+		public T GetIdentifier<T>(RawEntity entity)
+		{
+			return identifierToEntity.GetKey(entity).Get<T>();
+		}
+
+		public bool TryGetIdentifier<T>(RawEntity entity, out T value)
+		{
+			if (identifierToEntity.TryGetKey(entity, out var identifier))
+			{
+				value = identifier.Get<T>();
+				return true;
+			}
+
+			value = default;
+			return false;
 		}
 
 		/// <summary>
@@ -183,6 +200,25 @@ namespace RevolutionSnapshot.Core.ECS
 			var chunk = entityToChunk[entity];
 			return ref chunk.Components[typeof(T)].GetSpan<T>()[chunk.IndexOf(entity)];
 		}
+		
+		/// <summary>
+		/// Remove a component from an entity
+		/// </summary>
+		/// <param name="entity">The entity</param>
+		/// <param name="type">The component to remove</param>
+		/// <returns>Return true if the component was removed</returns>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public bool RemoveComponent(RawEntity entity, Type type)
+		{
+			var previousChunk = entityToChunk[entity];
+			var componentList = previousChunk.ComponentTypes.Except(new[] {type})
+			                                 .ToArray();
+			if (componentList.Length == previousChunk.ComponentTypes.Length)
+				return false;
+
+			MoveToChunk(entity, GetOrCreateChunk(componentList.ToArray()));
+			return true;
+		}
 
 		/// <summary>
 		/// Remove a component from an entity
@@ -192,17 +228,8 @@ namespace RevolutionSnapshot.Core.ECS
 		/// <returns>Return true if the component was removed</returns>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public bool RemoveComponent<T>(RawEntity entity)
-			where T : IRevolutionComponent
-		{
-			var previousChunk = entityToChunk[entity];
-			var componentList = previousChunk.ComponentTypes.Except(new[] {typeof(T)})
-			                                 .ToArray();
-			if (componentList.Length == previousChunk.ComponentTypes.Length)
-				return false;
-
-			MoveToChunk(entity, GetOrCreateChunk(componentList.ToArray()));
-			return true;
-		}
+			where T : IRevolutionComponent =>
+			RemoveComponent(entity, typeof(T));
 
 		/// <summary>
 		///     Get the chunk of an entity
@@ -213,5 +240,7 @@ namespace RevolutionSnapshot.Core.ECS
 		{
 			return entityToChunk[entity];
 		}
+
+		public bool Exists(RawEntity entity) => entityToChunk.ContainsKey(entity);
 	}
 }

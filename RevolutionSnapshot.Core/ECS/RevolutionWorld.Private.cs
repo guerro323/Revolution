@@ -52,13 +52,20 @@ namespace RevolutionSnapshot.Core.ECS
 		private void MoveToChunk(RawEntity entity, RevolutionChunk newChunk)
 		{
 			if (entityToChunk.TryGetValue(entity, out var previousChunk))
-				previousChunk.RemoveEntity(entity);
+			{
+				if (!ReferenceEquals(previousChunk, newChunk))
+				{
+					newChunk.AddEntity(entity);
+					CopyComponents(entity, previousChunk, newChunk);
+					previousChunk.RemoveEntity(entity);
+				}
+			}
+			else
+				newChunk.AddEntity(entity);
 
-			newChunk.AddEntity(entity);
 			entityToChunk[entity] = newChunk;
 		}
 
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		private static void CopyComponents(RawEntity entity, RevolutionChunk source, RevolutionChunk destination)
 		{
 			var sourceIdx      = source.IndexOf(entity);
