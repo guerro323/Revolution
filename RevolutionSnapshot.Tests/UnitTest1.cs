@@ -1,5 +1,6 @@
 using System;
 using System.Buffers;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.CompilerServices;
@@ -67,6 +68,33 @@ namespace RevolutionSnapshot.Tests
 		}
 
 		[Test]
+		public void TestCloneableComponent()
+		{
+			using var managedArray = new ComponentArray(typeof(ManagedComponent));
+			managedArray.Add(default);
+			managedArray.GetSpan<ManagedComponent>()[0].Elements = new List<int> {1, 2, 3};
+
+			using var copyManaged = new ComponentArray(typeof(ManagedComponent));
+			copyManaged.Add(default);
+			managedArray.CopyTo(copyManaged);
+
+			// the sequence should be the same...
+			Assert.AreEqual(managedArray.GetSpan<ManagedComponent>()[0].Elements, copyManaged.GetSpan<ManagedComponent>()[0].Elements);
+			// but they shouldn't point to the same object!
+			Assert.AreNotSame(managedArray.GetSpan<ManagedComponent>()[0].Elements, copyManaged.GetSpan<ManagedComponent>()[0].Elements);
+			
+			using var valueArray = new ComponentArray(typeof(Component1));
+			valueArray.Add(default);
+			valueArray.GetSpan<Component1>()[0].Value = 4;
+
+			using var copyValue = new ComponentArray(typeof(Component1));
+			copyValue.Add(default);
+			valueArray.CopyTo(copyValue);
+			
+			Assert.AreEqual(valueArray.GetSpan<Component1>()[0].Value, copyValue.GetSpan<Component1>()[0].Value);
+		}
+
+		[Test]
 		public void TestIdentifier()
 		{
 			using var world = new RevolutionWorld();
@@ -103,6 +131,30 @@ namespace RevolutionSnapshot.Tests
 			Assert.IsTrue(world.RemoveComponent<Component1>(entity.Raw));
 		}
 
+		[Test]
+		public void TestEntitySwapbackRemoval()
+		{
+			using var world     = new RevolutionWorld(4);
+
+			world.CreateEntity().SetComponent(new Component1 {Value = 0});
+			
+			var       entityOne = world.CreateEntity();
+			entityOne.SetComponent(new Component1 {Value = 1});
+			var entityToRemove = world.CreateEntity();
+			entityToRemove.SetComponent(new Component1 {Value = 2});
+			var entityThree = world.CreateEntity();
+			entityThree.SetComponent(new Component1 {Value = 3});
+			
+			world.CreateEntity().SetComponent(new Component1 {Value = 4});
+
+			world.RemoveEntity(entityToRemove.Raw);
+
+			Assert.AreEqual(1, entityOne.GetComponent<Component1>().Value);
+			Assert.AreEqual(3, entityThree.GetComponent<Component1>().Value);
+			Assert.AreEqual(2, entityThree.Chunk.IndexOf(entityThree.Raw));
+			Assert.IsFalse(entityToRemove.IsAlive);
+		}
+
 		struct Component1 : ISnapshotComponent<Component1>
 		{
 			public int Value;
@@ -113,9 +165,22 @@ namespace RevolutionSnapshot.Tests
 			}
 		}
 
-		struct Component2 : IRevolutionComponent
+		struct Component2
 		{
 
+		}
+
+		struct ManagedComponent : ICloneable<ManagedComponent>
+		{
+			public List<int> Elements;
+			
+			public ManagedComponent Clone()
+			{
+				return new ManagedComponent
+				{
+					Elements = new List<int>(Elements)
+				};
+			}
 		}
 	}
 }

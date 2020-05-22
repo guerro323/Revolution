@@ -5,14 +5,14 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <Nullable>disable</Nullable>
         <PackageId>Revolution.Core</PackageId>
-        <PackageVersion>2020.05.18.2340</PackageVersion>
+        <PackageVersion>2020.520.1623</PackageVersion>
         <Title>Revolution.Core</Title>
         <Authors>guerro</Authors>
         <PackageProjectUrl>https://github.com/guerro323/revolution</PackageProjectUrl>
         <PackageLicenseUrl>https://github.com/guerro323/revolution/LICENSE</PackageLicenseUrl>
         <RepositoryUrl>https://github.com/guerro323/Revolution.git</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
-        <AssemblyVersion>0.0.1</AssemblyVersion>
+        <AssemblyVersion>0.0.2</AssemblyVersion>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">

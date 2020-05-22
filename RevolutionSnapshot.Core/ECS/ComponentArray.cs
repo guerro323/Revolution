@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using Collections.Pooled;
 
@@ -70,7 +71,7 @@ namespace RevolutionSnapshot.Core.ECS
 		public void CopyTo(ComponentArray other)
 		{
 			if (other.Type != Type)
-				throw new InvalidOperationException("not the same time");
+				throw new InvalidOperationException("not the same type");
 			if (other.Length != Length)
 				throw new InvalidOperationException("the length does not match");
 			wrapped.CopyTo(other.wrapped);
@@ -128,14 +129,15 @@ namespace RevolutionSnapshot.Core.ECS
 
 			public override void CopyTo(int source, Wrapped other, int destination)
 			{
-				((Wrapped<T>) other).values[destination] = values[source];
+				var genOther = (Wrapped<T>) other;
+				RevolutionType<T>.Copy(values.Span.Slice(source, 1), genOther.values.Span.Slice(destination, 1));
 			}
 
 			public override void CopyTo(Wrapped other)
 			{
 				var genOther = (Wrapped<T>) other;
 				genOther.values.Clear();
-				values.CopyTo(genOther.values.AddSpan(values.Count));
+				RevolutionType<T>.Copy(values.Span, genOther.values.AddSpan(values.Count));
 			}
 
 			public override void Dispose()

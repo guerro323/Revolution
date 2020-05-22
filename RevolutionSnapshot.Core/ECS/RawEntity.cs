@@ -63,19 +63,16 @@ namespace RevolutionSnapshot.Core.ECS
 		}
 
 		public ref T SetComponent<T>(in T value)
-			where T : IRevolutionComponent
 		{
 			return ref World.SetComponent(Raw, value);
 		}
 
 		public ref T GetComponent<T>()
-			where T : IRevolutionComponent
 		{
 			return ref World.GetComponent<T>(Raw);
 		}
 
 		public bool RemoveComponent<T>()
-			where T : IRevolutionComponent
 		{
 			return World.RemoveComponent<T>(Raw);
 		}

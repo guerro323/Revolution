@@ -5,7 +5,7 @@ namespace RevolutionSnapshot.Core
 	/// <summary>
 	/// A snapshot data contain information about current data on a snapshot...
 	/// </summary>
-	public interface ISnapshotComponent<T> : IRevolutionComponent
+	public interface ISnapshotComponent<T>
 		where T : ISnapshotComponent<T>
 	{
 		/// <summary>

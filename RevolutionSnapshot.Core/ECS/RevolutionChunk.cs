@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using Collections.Pooled;
 
 namespace RevolutionSnapshot.Core.ECS
@@ -24,6 +25,8 @@ namespace RevolutionSnapshot.Core.ECS
 		private readonly PooledList<RawEntity>            entities;
 		private readonly PooledDictionary<RawEntity, int> entityToIndex;
 
+		private Action<int> updateEntityIndex;
+
 		public RevolutionChunk(IEnumerable<Type> components)
 		{
 			ComponentTypes = components.ToArray();
@@ -32,6 +35,7 @@ namespace RevolutionSnapshot.Core.ECS
 			foreach (var type in ComponentTypes) Components[type] = new ComponentArray(type);
 
 			entityToIndex = new PooledDictionary<RawEntity, int>();
+			updateEntityIndex = i => entityToIndex[entities[i]] = i;
 		}
 
 		/// <summary>
@@ -70,14 +74,18 @@ namespace RevolutionSnapshot.Core.ECS
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal void RemoveEntity(RawEntity entity)
 		{
+			var idx = IndexOf(entity);
 			foreach (var component in Components.Values)
-				component.RemoveAt(entities.IndexOf(entity));
-			entities.Remove(entity);
-
-			entityToIndex.Clear();
-
-			var i                                        = 0;
-			foreach (var e in entities) entityToIndex[e] = i++;
+				component.RemoveAt(idx);
+			
+			entities.RemoveAt(idx);
+			// swapping back the index of the next entity to the previous index
+			if (idx < entities.Count)
+			{
+				entityToIndex.Remove(entity);
+				entityToIndex[entities[idx]] = idx;
+				Parallel.For(idx, entities.Count, updateEntityIndex);
+			}
 		}
 
 		/// <summary>
@@ -102,6 +110,7 @@ namespace RevolutionSnapshot.Core.ECS
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public int IndexOf(RawEntity entity)
 		{
+			//return entities.IndexOf(entity);
 			return entityToIndex[entity];
 		}
 

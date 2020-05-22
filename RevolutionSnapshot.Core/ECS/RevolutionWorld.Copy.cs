@@ -8,7 +8,7 @@
 		/// <returns>The cloned world.</returns>
 		public RevolutionWorld Clone()
 		{
-			var cloned = new RevolutionWorld();
+			var cloned = new RevolutionWorld(entityInitialCapacity: this.entityToChunk.Count);
 			CopyToAndIgnoreDuplicate(cloned);
 			return cloned;
 		}

@@ -21,7 +21,7 @@ namespace RevolutionSnapshot.Core.ECS
 		private readonly TwoWayDictionary<EntityIdentifier, RawEntity> identifierToEntity;
 		private          RawEntity                               lastEntity;
 
-		public RevolutionWorld(int capacity = 0)
+		public RevolutionWorld(int entityInitialCapacity = 0)
 		{
 			lastEntity = default;
 
@@ -29,8 +29,8 @@ namespace RevolutionSnapshot.Core.ECS
 			// the first chunk has no component
 			Chunks[0] = new RevolutionChunk(new Type[0]);
 
-			entityToChunk      = new Dictionary<RawEntity, RevolutionChunk>(1);
-			identifierToEntity = new TwoWayDictionary<EntityIdentifier, RawEntity>();
+			entityToChunk      = new Dictionary<RawEntity, RevolutionChunk>(entityInitialCapacity);
+			identifierToEntity = new TwoWayDictionary<EntityIdentifier, RawEntity>(entityInitialCapacity);
 		}
 
 		protected RevolutionChunk EmptyComponentChunk => Chunks[0];
@@ -155,7 +155,6 @@ namespace RevolutionSnapshot.Core.ECS
 		/// <returns></returns>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public ref T SetComponent<T>(RawEntity entity, in T value)
-			where T : IRevolutionComponent
 		{
 			Type[] componentList = {typeof(T)};
 			if (entityToChunk.TryGetValue(entity, out var previousChunk))
@@ -195,7 +194,6 @@ namespace RevolutionSnapshot.Core.ECS
 		/// <returns></returns>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public ref T GetComponent<T>(RawEntity entity)
-			where T : IRevolutionComponent
 		{
 			var chunk = entityToChunk[entity];
 			return ref chunk.Components[typeof(T)].GetSpan<T>()[chunk.IndexOf(entity)];
@@ -227,9 +225,7 @@ namespace RevolutionSnapshot.Core.ECS
 		/// <typeparam name="T">The component to remove</typeparam>
 		/// <returns>Return true if the component was removed</returns>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public bool RemoveComponent<T>(RawEntity entity)
-			where T : IRevolutionComponent =>
-			RemoveComponent(entity, typeof(T));
+		public bool RemoveComponent<T>(RawEntity entity) => RemoveComponent(entity, typeof(T));
 
 		/// <summary>
 		///     Get the chunk of an entity
